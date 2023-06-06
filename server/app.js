@@ -1,6 +1,7 @@
 let defaultConfigs = {
     "port": "3000",
-    "modelLocation": ""
+    "modelLocation": "",
+    "aliveTimeout": 60000
 };
 
 const path = require('path');
@@ -10,19 +11,27 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 
 let pendingClashes = [];
+let aliveSessions = [];
 
 
 
 exports.createSessionFromFile = async function (filepath) {
     let uv4 = uuidv4();
     await imageservice.generateImage(filepath,{ evaluate: true, cacheID: uv4 });
+    aliveSessions[uv4] =  new Date();
     return uv4;
 }
 
 exports.createSessionFromData = async function (data) {
     let uv4 = uuidv4();
     await imageservice.generateImage(filepath,{ evaluate: true, cacheID: uv4,scsData:data });
+    aliveSessions[uv4] =  new Date();
     return uv4;
+}
+
+exports.endSession = async function (sessionid) {
+    delete aliveSessions[key];
+    await imageservice.removeFromCache(req.params.sessionid);
 }
 
 
@@ -34,6 +43,10 @@ exports.startServer = async function (config) {
     
     async function _cmSetSourceNodes(nodeids) {
         await myClashManager.setSourceNodes(nodeids);
+    }
+
+    async function _cmInvalidateNodes(nodeids) {
+        await myClashManager.invalidateNodes(nodeids);
     }
    
     async function _cmSetTargetNodes(nodeids) {
@@ -49,8 +62,8 @@ exports.startServer = async function (config) {
     }
    
 
-    async function _cmCheckAgainstNode(nodeid) {
-        let result = await myClashManager.checkAgainstNode(nodeid);
+    async function _cmCalculateClashesForSingleNode(nodeid) {
+        let result = await myClashManager.calculateClashesForSingleNode(nodeid);
         return result
     }
 
@@ -69,7 +82,7 @@ exports.startServer = async function (config) {
             return res;
         }
 
-        pendingClashes[sessionid] = { status: "pending" };
+        pendingClashes[sessionid] = {status: "pending" };
         let result = await imageservice.generateImage(null,{ callback: _cmCalculateClashes,evaluate: true, cacheID: sessionid });
         pendingClashes[sessionid] = { status: "done",result:result };
     }
@@ -89,14 +102,38 @@ exports.startServer = async function (config) {
     app.use(bodyParser.json());
     await imageservice.start({customViewerDirectory:path.join(__dirname, 'cviewer')});
 
-    router.put('/start/:modelname', async function (req, res, next) {
+    setInterval(function () {
+        let now = new Date();
+        let aliveTimeout = config ? config.aliveTimeout : defaultConfigs.aliveTimeout;
+        for (let key in aliveSessions) {
+            if (now - aliveSessions[key] > aliveTimeout) {
+                imageservice.removeFromCache(key);                
+                delete aliveSessions[key];
+                console.log("Session " + key + " closed")
+            }
+        }
+    }, 10000);
+
+    router.put('/startSession/:modelname', async function (req, res, next) {
         let uv4 = uuidv4();
         let modelLocation = config ? config.modelLocation : defaultConfigs.modelLocation;
         if (!modelLocation) {
             modelLocation = path.join(__dirname, "../dev/public/models");
         }
         await imageservice.generateImage(path.join(modelLocation, req.params.modelname),{ evaluate: true, cacheID: uv4 });
+        aliveSessions[uv4] =  new Date();
         res.json({sessionID:uv4});
+    });
+
+    router.put('/pingSession/:sessionid', async function (req, res, next) {
+        aliveSessions[req.params.sessionid] =  new Date();
+        res.sendStatus(200);
+    });
+
+    router.put('/endSession/:sessionid', async function (req, res, next) {
+        delete aliveSessions[key];
+        await imageservice.removeFromCache(req.params.sessionid);
+        res.sendStatus(200);
     });
 
     router.get('/calculateClashes/:sessionid', async function (req, res, next) {
@@ -116,8 +153,8 @@ exports.startServer = async function (config) {
         }
     });
 
-    router.get('/checkAgainstNode/:sessionid/:nodeid', async function (req, res, next) {
-        let result = await imageservice.generateImage(null,{ callback: _cmCheckAgainstNode,callbackParam: parseInt(req.params.nodeid),evaluate: true, cacheID: req.params.sessionid });
+    router.get('/calculateClashesForSingleNode/:sessionid/:nodeid', async function (req, res, next) {
+        let result = await imageservice.generateImage(null,{ callback: _cmCalculateClashesForSingleNode,callbackParam: parseInt(req.params.nodeid),evaluate: true, cacheID: req.params.sessionid });
         res.json(result);
     });
 
@@ -130,6 +167,12 @@ exports.startServer = async function (config) {
         await imageservice.generateImage(null,{ callback: _cmSetSourceNodes,callbackParam:req.body,evaluate: true, cacheID: req.params.sessionid });
         res.sendStatus(200);
     });
+
+    router.post('/invalidateNodes/:sessionid', async function (req, res, next) {
+        await imageservice.generateImage(null,{ callback: _cmInvalidateNodes,callbackParam:req.body,evaluate: true, cacheID: req.params.sessionid });
+        res.sendStatus(200);
+    });
+
 
     router.post('/setTargetNodes/:sessionid', async function (req, res, next) {
         await imageservice.generateImage(null,{ callback: _cmSetTargetNodes,callbackParam:req.body,evaluate: true, cacheID: req.params.sessionid });
@@ -159,33 +202,6 @@ exports.startServer = async function (config) {
     console.log("ClashManager Server Started");
 
 };
-
-
-// async function func1() {
-//     await myClashManager.setFull();
-// }
-
-// async function func2(id) {
-//     let res =  await myClashManager.calculateClashes();    
-//     return res;
-// }
-
-// (async () => {
-//     let uv4 = uuidv4();
-//     await imageservice.start({customViewerDirectory:path.join(__dirname, 'cviewer')});
-//     await imageservice.generateImage("e:/communicator/HOOPS_Communicator_2023_SP1/quick_start/converted_models/standard/scs_models/arboleda.scs",
-//         { evaluate: true, cacheID: uv4 });
-//         console.log("init done1");
-//         await imageservice.generateImage(null,
-//         { callback: func1,evaluate: true, cacheID: uv4 });
-//         console.log("init done2");
-//         let res = await imageservice.generateImage(null,
-//         { callback: func2,evaluate: true, cacheID: uv4 });
-//         console.log(res.length)
-        
-//         await imageservice.shutdown();
-// })();
-
 
 
 if (require.main === module) {

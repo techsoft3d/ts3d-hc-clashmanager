@@ -19,8 +19,7 @@
   <script type="text/javascript" src="js/web_viewer_ui.js?v=624b2ae" id="hwvUI"></script>
   <script type="text/javascript" src="js/communicator_server_integration.js?v=624b2ae"></script>
   <script type="text/javascript" src="js/sample.js?v=624b2ae"></script>
-  <script type="text/javascript" src="js/hcMinimalBounding.min.js"></script>
-
+  
   <link rel="stylesheet" href="css/TreeControl.css" type="text/css" />
   <link rel="stylesheet" href="css/Toolbar.css" type="text/css" />
   <link rel="stylesheet" href="css/Common.css" type="text/css" />
@@ -49,8 +48,7 @@
 
     var modelStructureReady = false;
     var fullyDrawn = false;
-    window.MinimalBounding = hcMinimalBounding.MinimalBounding;
-
+    
     async function waitForIdle() {
       await hwv.waitForIdle();
       fullyDrawn = true;

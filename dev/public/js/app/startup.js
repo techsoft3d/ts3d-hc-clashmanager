@@ -12,7 +12,8 @@ var contextMenu;
 var enableAutoZoom = true;
 var enableAutoClip = false;
 var enableAutoTransparent = true;
-
+var enableAutoColor = true;
+var enableClashTestWhenDragging = true;
 var resultsTable = null;
 
 
@@ -22,6 +23,15 @@ var groupTree2 = null;
 
 var activeClashType = 0;
 
+
+function selectClashes(clashes) {
+    let selections = [];
+    for (let i = 0; i < clashes.length; i++) {
+        selections.push(new Communicator.Selection.SelectionItem(clashes[i].nodeid1));
+        selections.push(new Communicator.Selection.SelectionItem(clashes[i].nodeid2));
+    }
+   hwv.selectionManager.set(selections);
+}
 
 function progressCallback(current, total) {
     const progressBar = document.getElementById('progressBar');
@@ -42,16 +52,25 @@ function progressCallback(current, total) {
 }
 
 async function msready() {
+
+    if (serveraddress) {
+        $("#checkclashwhendragging").prop("checked", false);
+        $("#checkclashwhendragging").prop("disabled", true);
+        enableClashTestWhenDragging = false;
+    }
+
     hwv.selectionManager.setHighlightFaceElementSelection(false)
     hwv.selectionManager.setNodeSelectionHighlightMode(Communicator.SelectionHighlightMode.OutlineOnly)
     hwv.selectionManager.setNodeSelectionOutlineColor(new Communicator.Color(255, 255, 0));
     hwv.selectionManager.setNodeSelectionColor(new Communicator.Color(255, 255, 0));
     hwv.setCallbacks({
-        handleEvent: function (type, nodeids, mat1, mat2) {
+        handleEvent: async function (type, nodeids, mat1, mat2) {
             if (nodeids[0] > 0) {
-                myClashManager.invalidateNode(nodeids[0]);
-                myClashManager.checkAgainstNode(nodeids[0]);
-                _this._handleEvent(type, nodeids, mat1, mat2);
+                await myClashManager.invalidateNodes([nodeids[0]]);
+                if (enableClashTestWhenDragging) {
+                    let clashResults = await myClashManager.calculateClashesForSingleNode(nodeids[0]);
+                    selectClashes(clashResults);
+                }
             }
         },
     });
@@ -67,7 +86,6 @@ async function msready() {
     mySmartSearchManager = new hcSmartSearch.SmartSearchManager(hwv);
     mySmartSearchManager.setKeepSearchingChildren(false);
     hcSmartSearch.SmartSearchEditorUI.initialize("searchtools", mySmartSearchManager);
-    hcSmartSearch.SmartSearchEditorUI.display();
 
     myClashManager = new hcClashManager.ClashManager(hwv);
     if (serveraddress) {
@@ -158,10 +176,14 @@ async function msready() {
         await hwv.selectionManager.clear();
         let selections = [];
         let nodes = [];
+        let nodes1 = [];
+        let nodes2 = [];
         for (let i = 0; i < rows.length; i++) {
             let id1 = parseInt(rows[i].id);
             let id2 = parseInt(rows[i].targetID);
             nodes.push(id1, id2);
+            nodes1.push(id1);
+            nodes2.push(id2);
             selections.push(new Communicator.Selection.SelectionItem(id1));
             selections.push(new Communicator.Selection.SelectionItem(id2));
         }
@@ -184,6 +206,10 @@ async function msready() {
             hwv.model.setInstanceModifier(Communicator.InstanceModifier.DoNotSelect, nodes, false);
 
         }
+        if (enableAutoColor) {
+            await hwv.model.setNodesFaceColor(nodes1,new Communicator.Color(255,0,0));
+            await hwv.model.setNodesFaceColor(nodes2,new Communicator.Color(0,255,0));
+        }
         if (enableAutoZoom) {
             if (enableAutoClip) {
                 hwv.view.fitNodes(nodes, 0);
@@ -192,6 +218,7 @@ async function msready() {
                 hwv.view.fitNodes(nodes, 500);
             }
         }
+        
 
     });
 
@@ -324,12 +351,14 @@ async function calculateClashResults(type) {
     }
     resultsTable.clearData();
     if (type == 2) {
-        currentClashResults = await myClashManager.checkAgainstNode(hwv.selectionManager.getLast().getNodeId());
+        currentClashResults = await myClashManager.calculateClashesForSingleNode(hwv.selectionManager.getLast().getNodeId());
     }
     else {
         currentClashResults = await myClashManager.calculateClashes();
     }
     
+    selectClashes(currentClashResults);
+
     let tableData = [];
     for (let i = 0; i < currentClashResults.length; i++) {
         let ores = currentClashResults[i];

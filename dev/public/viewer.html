@@ -1229,8 +1229,9 @@
       <h1>Settings</h1>
       Tolerance:<input id="tolerance" style="position:relative;left:5px;width:50px;width:35px;" type="text" value="0">
       <span style="margin-left:10px;"></span>Clearance:<input id="clearance" style="position:relative;left:5px;width:35px;" type="text" value="0"></span>
-      <input type="checkbox" style="top:3px;position:relative;margin-left:10px" id="ignorespaces" onclick="myClashManager.setIgnoreSpaces(!myClashManager.getIgnoreSpaces())" checked="checked">Ignore Spaces<br> 
-      <input type="checkbox" style="margin-top:5px" checked onclick="myClashManager.setSeparationCheck(!myClashManager.getSeparationCheck())">Sep. Check
+      <input type="checkbox" style="top:3px;position:relative;margin-left:10px" id="ignoreinvisible" onclick="myClashManager.setIgnoreInvisible(!myClashManager.getIgnoreInvisible());">Ignore Invisible
+      <input type="checkbox" style="top:3px;position:relative;margin-left:10px" id="ignorespaces" onclick="myClashManager.setIgnoreSpaces(!myClashManager.getIgnoreSpaces());activeClashType = 1;" checked="checked">Ignore Spaces<br> 
+      <input type="checkbox" style="margin-top:5px" checked onclick="myClashManager.setEntitySeparationCheck(!myClashManager.getSeparationCheck())">Entity Sep. Check
       <input type="checkbox" style="margin-top:5px" onclick="myClashManager.setTouchCheck(!myClashManager.getTouchCheck())">Touch Check
       <input type="checkbox" style="margin-top:5px" onclick="myClashManager.setTouchValidation(!myClashManager.getTouchValidation())">Touch Valid.
       <input type="checkbox" style="margin-top:5px" onclick="myClashManager.setInsideCheck(!myClashManager.getInsideCheck())">Inside<br>
@@ -1238,16 +1239,17 @@
       <h1>Other</h1>
       <input type="button" class="button-4 button-4imp" onclick='fullReset()' value="Reset Model">
       <input type="button" class="button-4" onclick='myClippingBox.deactivate();' value="Clear ClipBox">
-      <input type="button" class="button-4" onclick='myClippingBox.showMovementHandles();' value="ClipBox Handles">    
+      <input id="checkclashwhendragging" type="checkbox" style="margin-top:5px" checked onclick="enableClashTestWhenDragging = !enableClashTestWhenDragging;">Check Clash when Dragging<br>
       <h1>Clash Report</h1>
-      <input type="button" style="top:-6px;" class="button-4" onclick='colorizeResults()' value="Colorize">
+      <input type="button" style="top:-6px;" class="button-4" onclick='colorizeResults()' value="Colorize All">
       <span style="position:relative;top:-4px" ><input checked type="checkbox" onclick="enableAutoZoom = !enableAutoZoom;" >Auto Zoom
+      <input type="checkbox" checked onclick="enableAutoTransparent = !enableAutoTransparent;" >Auto XRay
+      <input type="checkbox" checked onclick="enableAutoColor = !enableAutoColor;" >Auto Color
       <input type="checkbox" onclick="enableAutoClip = !enableAutoClip;" >Auto Clip
-      <input type="checkbox" checked onclick="enableAutoTransparent = !enableAutoTransparent;" >Auto XRay</span>
+      </span>
       <div id="clashlist" style="position:relative;display:block;width:100%;height:calc(100% - 313px)">         
       </div>
     </div>
-
 
   <div id="searchtools" style="width:100%;height:100%;position:relative"></div>
   <div id="grouptree" style="width:100%;height:100%;position:relative">
@@ -1263,8 +1265,5 @@
       </div>
       </div>
   </div>
- 
-
-
   </body>
 </html>
