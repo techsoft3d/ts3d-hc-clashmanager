@@ -59,24 +59,24 @@ The Units for all values passed into the library as well as for the returned cla
 
 ```myClashManager = new hcClashManager.ClashManager(hwv)```  
 The function takes the webviewer instance as its only parameter. The library should only be instantiated and used *after* the modelStructureReady callback has triggered. 
-If you are loading your models in a delayed fashion (e.g. via loadSubtree..) you should wait until the loadSubtree promise has returned before initializing full or partial clash detection. (it needs to be reinitialized each time adding models have been added)
+If you are loading your models in a delayed fashion (e.g. via loadSubtree..) you should wait until the loadSubtree promise has returned before initializing full or partial clash detection. (it needs to be reinitialized each time additional models have been added)
 
-### Intialize Full Clash Detection
+### Intializing Full Clash Detection
 ```await myClashManager.setFull()```  
 This will initialize the clash-test of all geometry (triangle meshes) in the model against each other that are not part of the set of excluded geometry (see below). This function does not perform the actual clash test, but just sets up the data structures required for the clash detection. To perform the actual clash detection call `myClashManager.calculateClashes()`.
 
-### Intialize Partial Clash Detection
+### Intializing Partial Clash Detection
 ```await myClashManager.setSourceNodes(nodeids)```  
 ```await myClashManager.setTargetNodes(nodeids)```  
 This will initialize the clash-test between geometry of all source nodes (and their children) with the geometry of all target nodes (and their children).To switch back to full clash detection call `myClashManager.setFull()` again. These functions do not perform the actual clash test, but just set up the data structures required for the clash detection. To perform the actual clash detection call `myClashManager.calculateClashes()`. You can call `setSourceNodes` and `setTargetNodes` independetly to update just one of the groups.
 
 **Only triangle meshes will be considered for the clash detection, line or point geometry will be ignored.**
 
-### Exclude Nodes from Clash Detection
+### Excluding Nodes from Clash Detection
 ```await myClashManager.setExludeNodes(nodeids)```  
 All nodes passed into this function (including their children) will be excluded from the clash detection calculation (even if included among the array of source or target nodes). Pass an empty array to reset the list of excluded nodes.  
 
-### Perform Clash Detection
+### Performing Clash Detection
 ```let clashResults = await myClashManager.calculateClashes();```  
 Performs clash detection for all geometry in a model or the nodes included in the source and target nodes (based on previous initialization).  
 `clashResults` is an array of all found clashes. Each clashobject has the following properties:  
@@ -210,12 +210,12 @@ or
 ```
 let sessionid = await clashmanager.createSessionFromData(scsblob);
 ```
-Those functions take either a fully qualifed path to an scs file or a binary blob containing the scs file data. After the new session has been created, the functions will return a sessionid, you can then pass to the client library. In this scenario, you should not call the initializeServer function mentiond above on the client, but instead pass the existing sessionid to the client library with the following function:
+The first function takes a fully qualifed path to an scs file while the second function takes a binary blob consisting of the scs file data as its parameter. After the new session has been created, the functions will return a session id, you can then pass to the client library. In this scenario, you should not call the initializeServer function mentiond above on the client, but instead pass the existing session id to the client library with the following function:
 ```
 myClashManager.initializeExistingServerSession("http://127.0.0.1:3000",sessionid);
 ```
 
-After a session is done, you have the option to close the session server-side by calling the following function, which will free up resources on the server. If you don't call this function, the session will be closed automatically (after a timeout), when the client disconnects (default: 60 seconds). 
+After a session is done, you have the option to close the session server-side by calling the following function server-side, which will free up resources on the server. If you don't call this function, the session will be closed automatically (after a timeout), when the client disconnects (default: 60 seconds) or when the client requests to close the session.
 ```
 await clashmanager.endSession(sessionid);
 ```

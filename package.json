@@ -1,6 +1,6 @@
 {
   "name": "ts3d-hc-clashmanager",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "",
   "main": "server/app.js",
   "scripts": {
