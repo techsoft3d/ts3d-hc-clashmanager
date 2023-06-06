@@ -78,6 +78,7 @@ All nodes passed into this function (including their children) will be excluded 
 
 ### Perform Clash Detection
 ```let clashResults = await myClashManager.calculateClashes();```  
+Performs clash detection for all geometry in a model or the nodes included in the source and target nodes (based on previous initialization).  
 `clashResults` is an array of all found clashes. Each clashobject has the following properties:  
 **nodeid1**: nodeid, the nodeid of the first element involved in the clash  
 **nodeid2**: nodeid, the nodeid of the second element involved in the clash  
@@ -85,6 +86,10 @@ All nodes passed into this function (including their children) will be excluded 
 **distance**: number, the distance between the two elements, negative if elements are clashing  
 **isWithinClearance**: boolean, true if the two elements are not penetrating but within the specified clearance distance (a soft clash)  
 **isTouching**: boolean, true if the two elements are touching (only valid if the touch check is enabled)  
+
+```let clashResults = await myClashManager.calculateClashesForSingleNode(nodeid);```  
+Performs clash detection for a single node. 
+`clashResults` is an array of all found clashes (same properties as above) 
 
 ### Settings
 The below settings can be modified before calling `myClashManager.calculateClashes()` without the need to reinitialize the library. All functions have equivalent getter functions.  
@@ -133,6 +138,9 @@ function progressCallback(current, total) {
     }
 }
 ```
+
+```myClashManager.invalidateNodes(nodeids)```  
+Invalidates the specified nodes. This will updated the clash detection data structures to reflect any changes to the geometry of the specified nodes (e.g. the modelling matrix on the node has changed).
 
 ```myClashManager.getVersion()```  
 Retrieves the version of the library  
@@ -218,7 +226,7 @@ In addition, you might also want to use a proxy to control access to the clash s
 The typical workflow for server-side clash detection would be to run the clash detection server on its own instance. If a user wants to perform clash detection your backend would then pull out the relevant scs file from your storage, create a new clash session server-side, and send the session id to the client so that the client-library can connect to the session. All this would be controlled via a proxy that ensures session integrity and security and handles potential load-balancing. Please keep in mind that each clash session can use a significant amount of memory on the server as well as CPU resources so you should limit the number of concurrent sessions per server to a reasonable amount based on the underlying hardware.
 
 ### Limitations
-Adding additional models to an existing clash session is currently not supported when using server-side clash detection.
+Adding additional models to an existing clash session is currently not supported when using server-side clash detection. In addition, any changes to the model loaded on the client (e.g. changing visibility, moving parts, etc.) will not be reflected in the clash results in that mode. 
 
 ## Acknowledgments
 ### Demo:
