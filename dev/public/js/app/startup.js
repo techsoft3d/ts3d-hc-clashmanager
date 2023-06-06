@@ -26,11 +26,18 @@ var activeClashType = 0;
 
 function selectClashes(clashes) {
     let selections = [];
+    let nodeids = [];
     for (let i = 0; i < clashes.length; i++) {
+        nodeids.push(clashes[i].nodeid1);
+        nodeids.push(clashes[i].nodeid2);
         selections.push(new Communicator.Selection.SelectionItem(clashes[i].nodeid1));
         selections.push(new Communicator.Selection.SelectionItem(clashes[i].nodeid2));
     }
-   hwv.selectionManager.set(selections);
+
+    hwv.model.setNodesVisibility(nodeids, true);
+    hwv.model.setNodesOpacity(nodeids, 1);
+
+    hwv.selectionManager.set(selections);
 }
 
 function progressCallback(current, total) {
@@ -146,13 +153,13 @@ async function msready() {
         rowContextMenu: rowMenu,
         columns: [
             {
-                title: "Name", field: "name", minWidth: 80
+                title: "Item 1", field: "name", minWidth: 80
             },
             {
                 title: "ID", field: "id", width: 48
             },
             {
-                title: "Target", minWidth: 80, field: "targetName"
+                title: "Item 2", minWidth: 80, field: "targetName"
             },
             {
                 title: "ID", width: 48, field: "targetID"
