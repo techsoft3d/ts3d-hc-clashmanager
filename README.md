@@ -30,7 +30,7 @@ Add `dist/hcClashManager.min.js` to your project
 
 ## Demo
 
-The demo is a "quick and dirty" front-end implementation for the library. It is not meant to be a robust, full-fledged application, but rather a practical Proof of Concept that showcases the clash detection functionality. It can be found in the 'dev/public' folder of the project.
+The demo is a "quick and dirty" front-end implementation of the library. It is not meant to be a robust, full-fledged application, but rather a practical Proof of Concept that showcases the main clash detection features. It can be found in the 'dev/public' folder of the project.
 
 To start the demo with the provided sample model locally when using the Visual Studio Code Live Server plugin use the below URL:
 <http://127.0.0.1:5500/dev/viewer.html?scs=models/arboleda.scs>
@@ -113,8 +113,8 @@ If set to true and the separation check is set to true, an extra touch test will
 If set to true and the extra touch test is set to true, an extra validation step will be performed to determine if the items are touching. See the Algorithm section for more details. Default: false  
 
 ```myClashManager.setIgnoreInvisible(boolean)```  
-If set to true, all invisible geometry will be ignored. Default: false
-When using server-side clash detection, only the initial visibility configuration of the model will be considered in the current version of the library.
+If set to true, all invisible geometry will be ignored. Default: false  
+When using server-side clash detection, only the initially visibile entities of the model will be considered in the current version of the library.
 
 ```myClashManager.setIgnoreSpaces(boolean)```  
 This setting only applies to IFC models. If set to true, all spaces geometry will be ignored. Default: true  
